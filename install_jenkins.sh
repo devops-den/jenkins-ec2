@@ -39,6 +39,8 @@ sudo wget http://localhost:8080/jnlpJars/jenkins-cli.jar
 
 passwd=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)
 
+echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount("kringle", "kringle123")' | sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://localhost:8080/ groovy =
+
 sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://localhost:8080 install-plugin amazon-ecr:1.6 \
                                                                                         cloudbees-bitbucket-branch-source:2.9.7 \
                                                                                         bitbucket:1.1.27 \
@@ -49,5 +51,4 @@ sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://localhost:8080 inst
                                                                                         jdk-tool:1.5 \
                                                                                         workflow-aggregator:2.6 \
                                                                                         ws-cleanup:0.39
-echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount("kringle", "kringle123")' | sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://localhost:8080/ groovy =
 sudo service jenkins restart
