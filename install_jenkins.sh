@@ -1,4 +1,85 @@
 #!/bin/bash
+# Create Jenkins Jobs function
+create_jenkins_jobs_init() {
+    # kringle-loyalty-api-ecs job xml content
+    cat > /tmp/kringle-loyalty-api-ecs.xml << EOF
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.4"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.4">
+      <jobProperties>
+        <string>jenkins.model.BuildDiscarderProperty</string>
+      </jobProperties>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <org.jenkinsci.plugins.gwt.GenericTrigger plugin="generic-webhook-trigger@1.72">
+          <spec></spec>
+          <regexpFilterText></regexpFilterText>
+          <regexpFilterExpression></regexpFilterExpression>
+          <printPostContent>false</printPostContent>
+          <printContributedVariables>false</printContributedVariables>
+          <causeString>Generic Cause - Commit</causeString>
+          <token>kringle-loyalty-api</token>
+          <tokenCredentialId></tokenCredentialId>
+          <silentResponse>false</silentResponse>
+          <overrideQuietPeriod>false</overrideQuietPeriod>
+        </org.jenkinsci.plugins.gwt.GenericTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.90">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+      <configVersion>2</configVersion>
+      <userRemoteConfigs>
+        <hudson.plugins.git.UserRemoteConfig>
+          <url>https://sajjas-kringle@bitbucket.org/rohuma/kringle-loyalty-api.git</url>
+          <credentialsId>kringle-jenkins-bitbucket</credentialsId>
+        </hudson.plugins.git.UserRemoteConfig>
+      </userRemoteConfigs>
+      <branches>
+        <hudson.plugins.git.BranchSpec>
+          <name>*/kringle-loyalty-docker</name>
+        </hudson.plugins.git.BranchSpec>
+      </branches>
+      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+      <submoduleCfg class="empty-list"/>
+      <extensions>
+        <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+          <deleteUntrackedNestedRepositories>true</deleteUntrackedNestedRepositories>
+        </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
+      </extensions>
+    </scm>
+    <scriptPath>Jenkinsfile</scriptPath>
+    <lightweight>false</lightweight>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
+EOF
+    # another job test
+    cat > /tmp/test.xml << EOF
+echo "Hi!"
+EOF
+}
+
+#################### Installing tools ####################
 sudo yum -y update
 sleep 10
 
@@ -25,11 +106,10 @@ sleep 10
 sudo yum install -y jenkins-2.277.1
 sudo usermod -a -G docker jenkins
 sudo chkconfig jenkins on
-sleep 10
 
 sudo service docker start
 sudo service jenkins start
-sleep 30
+sleep 60
 
 ipaddr=$(hostname -I | awk '{print $1}')
 # Install required jenkins plugins
@@ -39,6 +119,13 @@ passwd=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)
 
 echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount("kringle", "kringle123")' | sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://$ipaddr:8080/ groovy =
 
+################## Create Jenkins Jobs ##################
+create_jenkins_jobs_init
+
+# Create kringle-loyalty-api ecs service job
+sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://$ipaddr:8080 create-job kringle-loyalty-api-ecs < /tmp/kringle-loyalty-api-ecs.xml
+
+################## Install Jenkins Plugins ##################
 sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://$ipaddr:8080 install-plugin amazon-ecr:1.6 \
                                                                                         cloudbees-bitbucket-branch-source:2.9.7 \
                                                                                         bitbucket:1.1.27 \
@@ -49,14 +136,6 @@ sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://$ipaddr:8080 instal
                                                                                         jdk-tool:1.5 \
                                                                                         workflow-aggregator:2.6 \
                                                                                         ws-cleanup:0.39
-sudo service jenkins restart
-sleep 10
-
-################## Create Jenkins Jobs ##################
-create_jenkins_jobs_init
-
-# Create kringle-loyalty-api ecs service job
-sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://$ipaddr:8080 create-job kringle-loyalty-api-ecs < /tmp/kringle-loyalty-api-ecs.xml
 
 # Disable initial setup in jenkins
 sudo sed -i s/'JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true"'/'JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"'/g /etc/sysconfig/jenkins
@@ -124,94 +203,3 @@ php -r "unlink('composer-setup.php');"
 # Run inside project
 # composer require bref/bref
 # composer require bref/laravel-bridge
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Create Jenkins Jobs function
-create_jenkins_jobs_init() {
-    # kringle-loyalty-api-ecs job xml content
-    cat > /tmp/kringle-loyalty-api-ecs.xml << EOF
-    <?xml version='1.1' encoding='UTF-8'?>
-    <flow-definition plugin="workflow-job@2.40">
-    <actions>
-        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.4"/>
-        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.4">
-        <jobProperties>
-            <string>jenkins.model.BuildDiscarderProperty</string>
-        </jobProperties>
-        <triggers/>
-        <parameters/>
-        <options/>
-        </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
-    </actions>
-    <description></description>
-    <keepDependencies>false</keepDependencies>
-    <properties>
-        <jenkins.model.BuildDiscarderProperty>
-        <strategy class="hudson.tasks.LogRotator">
-            <daysToKeep>30</daysToKeep>
-            <numToKeep>30</numToKeep>
-            <artifactDaysToKeep>-1</artifactDaysToKeep>
-            <artifactNumToKeep>-1</artifactNumToKeep>
-        </strategy>
-        </jenkins.model.BuildDiscarderProperty>
-        <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-        <triggers>
-            <org.jenkinsci.plugins.gwt.GenericTrigger plugin="generic-webhook-trigger@1.72">
-            <spec></spec>
-            <regexpFilterText></regexpFilterText>
-            <regexpFilterExpression></regexpFilterExpression>
-            <printPostContent>false</printPostContent>
-            <printContributedVariables>false</printContributedVariables>
-            <causeString>Generic Cause - Commit</causeString>
-            <token>kringle-loyalty-api</token>
-            <tokenCredentialId></tokenCredentialId>
-            <silentResponse>false</silentResponse>
-            <overrideQuietPeriod>false</overrideQuietPeriod>
-            </org.jenkinsci.plugins.gwt.GenericTrigger>
-        </triggers>
-        </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-    </properties>
-    <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.90">
-        <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
-        <configVersion>2</configVersion>
-        <userRemoteConfigs>
-            <hudson.plugins.git.UserRemoteConfig>
-            <url>https://sajjas-kringle@bitbucket.org/rohuma/kringle-loyalty-api.git</url>
-            <credentialsId>kringle-jenkins-bitbucket</credentialsId>
-            </hudson.plugins.git.UserRemoteConfig>
-        </userRemoteConfigs>
-        <branches>
-            <hudson.plugins.git.BranchSpec>
-            <name>*/kringle-loyalty-docker</name>
-            </hudson.plugins.git.BranchSpec>
-        </branches>
-        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-        <submoduleCfg class="empty-list"/>
-        <extensions>
-            <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
-            <deleteUntrackedNestedRepositories>true</deleteUntrackedNestedRepositories>
-            </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
-        </extensions>
-        </scm>
-        <scriptPath>Jenkinsfile</scriptPath>
-        <lightweight>false</lightweight>
-    </definition>
-    <triggers/>
-    <disabled>false</disabled>
-EOF
-    # another job test
-    cat > /tmp/test.xml << EOF
-    echo "Hi!"
-EOF
-}
