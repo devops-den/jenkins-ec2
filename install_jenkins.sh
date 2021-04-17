@@ -27,150 +27,65 @@ EOF
 }
 
 # Create Jenkins Jobs function
-create_jenkins_jobs_init() {
+create_jenkins_multi_branch_pipeline() {
     # kringle-loyalty-api-ecs job xml content
-    cat > /tmp/kringle-loyalty-api-ecs.xml << EOF
+    cat > /tmp/kringle-loyalty-api.xml << EOF
 <?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@2.40">
-  <actions>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.4"/>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.4">
-      <jobProperties>
-        <string>jenkins.model.BuildDiscarderProperty</string>
-      </jobProperties>
-      <triggers/>
-      <parameters/>
-      <options/>
-    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
-  </actions>
+<org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject plugin="workflow-multibranch@2.23">
+  <actions/>
   <description></description>
-  <keepDependencies>false</keepDependencies>
   <properties>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>30</daysToKeep>
-        <numToKeep>30</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
-    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers>
-        <org.jenkinsci.plugins.gwt.GenericTrigger plugin="generic-webhook-trigger@1.72">
-          <spec></spec>
-          <regexpFilterText></regexpFilterText>
-          <regexpFilterExpression></regexpFilterExpression>
-          <printPostContent>false</printPostContent>
-          <printContributedVariables>false</printContributedVariables>
-          <causeString>Generic Cause - Commit</causeString>
-          <token>kringle-loyalty-api</token>
-          <tokenCredentialId></tokenCredentialId>
-          <silentResponse>false</silentResponse>
-          <overrideQuietPeriod>false</overrideQuietPeriod>
-        </org.jenkinsci.plugins.gwt.GenericTrigger>
-      </triggers>
-    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+    <org.jenkinsci.plugins.docker.workflow.declarative.FolderConfig plugin="docker-workflow@1.26">
+      <dockerLabel></dockerLabel>
+      <registry plugin="docker-commons@1.17"/>
+    </org.jenkinsci.plugins.docker.workflow.declarative.FolderConfig>
   </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.90">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
-      <configVersion>2</configVersion>
-      <userRemoteConfigs>
-        <hudson.plugins.git.UserRemoteConfig>
-          <url>https://sajjas-kringle@bitbucket.org/rohuma/kringle-loyalty-api.git</url>
-          <credentialsId>kringle-jenkins-bitbucket</credentialsId>
-        </hudson.plugins.git.UserRemoteConfig>
-      </userRemoteConfigs>
-      <branches>
-        <hudson.plugins.git.BranchSpec>
-          <name>*/kringle-loyalty-docker</name>
-        </hudson.plugins.git.BranchSpec>
-      </branches>
-      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-      <submoduleCfg class="empty-list"/>
-      <extensions>
-        <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
-          <deleteUntrackedNestedRepositories>true</deleteUntrackedNestedRepositories>
-        </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
-      </extensions>
-    </scm>
-    <scriptPath>Jenkinsfile</scriptPath>
-    <lightweight>false</lightweight>
-  </definition>
+  <folderViews class="jenkins.branch.MultiBranchProjectViewHolder" plugin="branch-api@2.6.3">
+    <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+  </folderViews>
+  <healthMetrics/>
+  <icon class="jenkins.branch.MetadataActionFolderIcon" plugin="branch-api@2.6.3">
+    <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+  </icon>
+  <orphanedItemStrategy class="com.cloudbees.hudson.plugins.folder.computed.DefaultOrphanedItemStrategy" plugin="cloudbees-folder@6.15">
+    <pruneDeadBranches>true</pruneDeadBranches>
+    <daysToKeep>30</daysToKeep>
+    <numToKeep>30</numToKeep>
+  </orphanedItemStrategy>
   <triggers/>
   <disabled>false</disabled>
-</flow-definition>
-EOF
-    # kringle-loyalty-api-lambda-cron job xml content
-    cat > /tmp/kringle-loyalty-api-lambda-cron.xml << EOF
-<?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@2.40">
-  <actions>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.4"/>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.4">
-      <jobProperties>
-        <string>jenkins.model.BuildDiscarderProperty</string>
-      </jobProperties>
-      <triggers/>
-      <parameters/>
-      <options/>
-    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
-  </actions>
-  <description></description>
-  <keepDependencies>false</keepDependencies>
-  <properties>
-    <jenkins.model.BuildDiscarderProperty>
-      <strategy class="hudson.tasks.LogRotator">
-        <daysToKeep>30</daysToKeep>
-        <numToKeep>30</numToKeep>
-        <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
-      </strategy>
-    </jenkins.model.BuildDiscarderProperty>
-    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers>
-        <org.jenkinsci.plugins.gwt.GenericTrigger plugin="generic-webhook-trigger@1.72">
-          <spec></spec>
-          <regexpFilterText></regexpFilterText>
-          <regexpFilterExpression></regexpFilterExpression>
-          <printPostContent>false</printPostContent>
-          <printContributedVariables>false</printContributedVariables>
-          <causeString>Generic Cause - Commit</causeString>
-          <token>kringle-loyalty-api</token>
-          <tokenCredentialId></tokenCredentialId>
-          <silentResponse>false</silentResponse>
-          <overrideQuietPeriod>false</overrideQuietPeriod>
-        </org.jenkinsci.plugins.gwt.GenericTrigger>
-      </triggers>
-    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-  </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.90">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
-      <configVersion>2</configVersion>
-      <userRemoteConfigs>
-        <hudson.plugins.git.UserRemoteConfig>
-          <url>https://sajjas-kringle@bitbucket.org/rohuma/kringle-loyalty-api.git</url>
+  <sources class="jenkins.branch.MultiBranchProject$BranchSourceList" plugin="branch-api@2.6.3">
+    <data>
+      <jenkins.branch.BranchSource>
+        <source class="jenkins.plugins.git.GitSCMSource" plugin="git@4.7.1">
+          <id>80d4e405-d91c-42fe-bc6f-4590bb773549</id>
+          <remote>REPO_URL</remote>
           <credentialsId>kringle-jenkins-bitbucket</credentialsId>
-        </hudson.plugins.git.UserRemoteConfig>
-      </userRemoteConfigs>
-      <branches>
-        <hudson.plugins.git.BranchSpec>
-          <name>feature/lambda</name>
-        </hudson.plugins.git.BranchSpec>
-      </branches>
-      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-      <submoduleCfg class="empty-list"/>
-      <extensions>
-        <hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
-          <deleteUntrackedNestedRepositories>true</deleteUntrackedNestedRepositories>
-        </hudson.plugins.git.extensions.impl.CleanBeforeCheckout>
-      </extensions>
-    </scm>
+          <traits>
+            <jenkins.plugins.git.traits.BranchDiscoveryTrait/>
+            <jenkins.scm.impl.trait.WildcardSCMHeadFilterTrait plugin="scm-api@2.6.4">
+              <includes>INCLUDE_BRANCHES</includes>
+              <excludes></excludes>
+            </jenkins.scm.impl.trait.WildcardSCMHeadFilterTrait>
+            <jenkins.plugins.git.traits.CleanBeforeCheckoutTrait>
+              <extension class="hudson.plugins.git.extensions.impl.CleanBeforeCheckout">
+                <deleteUntrackedNestedRepositories>true</deleteUntrackedNestedRepositories>
+              </extension>
+            </jenkins.plugins.git.traits.CleanBeforeCheckoutTrait>
+          </traits>
+        </source>
+        <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
+          <properties class="empty-list"/>
+        </strategy>
+      </jenkins.branch.BranchSource>
+    </data>
+    <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+  </sources>
+  <factory class="org.jenkinsci.plugins.workflow.multibranch.WorkflowBranchProjectFactory">
+    <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
     <scriptPath>Jenkinsfile</scriptPath>
-    <lightweight>false</lightweight>
-  </definition>
-  <triggers/>
-  <disabled>false</disabled>
-</flow-definition>
+  </factory>
+</org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject>
 EOF
 }
 
@@ -214,10 +129,10 @@ passwd=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)
 custom_user="kringle"
 custom_pass="kringle123"
 
-echo "jenkins.model.Jenkins.instance.securityRealm.createAccount($custom_user, $custom_pass)" | sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://$ipaddr:8080/ groovy =
+echo "jenkins.model.Jenkins.instance.securityRealm.createAccount(\"$custom_user\", \"$custom_pass\")" | sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://$ipaddr:8080/ groovy =
 
 ################## Create Jenkins Jobs ##################
-create_jenkins_jobs_init
+create_jenkins_multi_branch_pipeline
 ################## Create Jenkins Creds ##################
 create_jenkins_creds
 
@@ -296,28 +211,32 @@ php -r "if (hash_file('sha384', 'composer-setup.php') === '756890a4488ce9024fc62
 sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 php -r "unlink('composer-setup.php');"
 
-# Create kringle-loyalty-api ecs service job
-sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-job kringle-loyalty-api-ecs < /tmp/kringle-loyalty-api-ecs.xml
-
-# Create kringle-loyalty-api-lambda-cron service job
-sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-job kringle-loyalty-api-lambda-cron < /tmp/kringle-loyalty-api-lambda-cron.xml
-
 # Getting values for creating jenkins credentials from AWS
+region="$(curl --silent http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)"
 SSM_SECRETS=$(aws ssm get-parameters --names "BB_JENKINS_PSWD" \
                                 "BB_JENKINS_USER" \
                                 "JENKINS_ACCESS_KEY_ID" \
                                 "JENKINS_SECRET_ACCESS_KEY" \
-                                --with-decryption --query "Parameters[*]")
+                                --with-decryption --query "Parameters[*]" --region $region)
 
 BB_JENKINS_PSWD=$(echo $SSM_SECRETS | jq '.[] | select(.Name=="BB_JENKINS_PSWD")' | jq '.Value' -r)
 BB_JENKINS_USER=$(echo $SSM_SECRETS | jq '.[] | select(.Name=="BB_JENKINS_USER")' | jq '.Value' -r)
 JENKINS_ACCESS_KEY_ID=$(echo $SSM_SECRETS | jq '.[] | select(.Name=="JENKINS_ACCESS_KEY_ID")' | jq '.Value' -r)
 JENKINS_SECRET_ACCESS_KEY=$(echo $SSM_SECRETS | jq '.[] | select(.Name=="JENKINS_SECRET_ACCESS_KEY")' | jq '.Value' -r)
 
-sed -i "s/BB_JENKINS_PSWD/${BB_JENKINS_PSWD}/g" /tmp/kringle-jenkins-bitbucket.xml
-sed -i "s/BB_JENKINS_USER/${BB_JENKINS_USER}/g" /tmp/kringle-jenkins-bitbucket.xml
-sed -i "s/JENKINS_ACCESS_KEY_ID/${JENKINS_ACCESS_KEY_ID}/g" /tmp/awscreds-kringle-api.xml
-sed -i "s/JENKINS_SECRET_ACCESS_KEY/${JENKINS_SECRET_ACCESS_KEY}/g" /tmp/awscreds-kringle-api.xml
+sed -i "s|BB_JENKINS_PSWD|${BB_JENKINS_PSWD}|g" /tmp/kringle-jenkins-bitbucket.xml
+sed -i "s|BB_JENKINS_USER|${BB_JENKINS_USER}|g" /tmp/kringle-jenkins-bitbucket.xml
+sed -i "s|JENKINS_ACCESS_KEY_ID|${JENKINS_ACCESS_KEY_ID}|g" /tmp/awscreds-kringle-api.xml
+sed -i "s|JENKINS_SECRET_ACCESS_KEY|${JENKINS_SECRET_ACCESS_KEY}|g" /tmp/awscreds-kringle-api.xml
+
+INCLUDE_BRANCHES="feature/lambda kringle-loyalty-docker"
+REPO_URL="https://sajjas-kringle@bitbucket.org/rohuma/kringle-loyalty-api.git"
+
+sed -i "s|INCLUDE_BRANCHES|$INCLUDE_BRANCHES|g" /tmp/kringle-loyalty-api.xml
+sed -i "s|REPO_URL|$REPO_URL|g" /tmp/kringle-loyalty-api.xml
+
+# Create kringle common multi branch pipeline
+sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-job kringle-loyalty-api-ecs < /tmp/kringle-loyalty-api.xml
 
 # Create jenkins bitbucket access credentials
 sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-credentials-by-xml system::system::jenkins _ < /tmp/kringle-jenkins-bitbucket.xml

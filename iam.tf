@@ -32,7 +32,7 @@ resource "aws_iam_role_policy" "Jenkins-iam-role-policy" {
         {
             "Effect": "Allow",
             "Action":[
-              ssm:GetParameters
+              "ssm:GetParameters"
             ],
             "Resource": "*"
         }
