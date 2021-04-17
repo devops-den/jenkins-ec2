@@ -1,4 +1,31 @@
 #!/bin/bash
+# Create Jenkins credentials function
+create_jenkins_creds() {
+    # kringle-jenkins-bitbucket credentials xml content
+    cat > /tmp/kringle-jenkins-bitbucket.xml << EOF
+    <com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl plugin="credentials@2.3.17">
+      <scope>GLOBAL</scope>
+      <id>kringle-jenkins-bitbucket</id>
+      <description>kringle-jenkins-bitbucket</description>
+      <username>BB_JENKINS_USER</username>
+      <password>BB_JENKINS_PSWD</password>
+    </com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl>
+EOF
+
+    # aws credentials xml content
+    cat > /tmp/awscreds-kringle-api.xml << EOF
+    <com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl plugin="aws-credentials@1.28.1">
+      <scope>GLOBAL</scope>
+      <id>AWSCRED-KRINGLE-API</id>
+      <description></description>
+      <accessKey>JENKINS_ACCESS_KEY_ID</accessKey>
+      <secretKey>JENKINS_SECRET_ACCESS_KEY</secretKey>
+      <iamRoleArn></iamRoleArn>
+      <iamMfaSerialNumber></iamMfaSerialNumber>
+    </com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl>
+EOF
+}
+
 # Create Jenkins Jobs function
 create_jenkins_jobs_init() {
     # kringle-loyalty-api-ecs job xml content
@@ -184,11 +211,15 @@ ipaddr=$(hostname -I | awk '{print $1}')
 sudo wget http://$ipaddr:8080/jnlpJars/jenkins-cli.jar
 
 passwd=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)
+custom_user="kringle"
+custom_pass="kringle123"
 
-echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount("kringle", "kringle123")' | sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://$ipaddr:8080/ groovy =
+echo "jenkins.model.Jenkins.instance.securityRealm.createAccount($custom_user, $custom_pass)" | sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://$ipaddr:8080/ groovy =
 
 ################## Create Jenkins Jobs ##################
 create_jenkins_jobs_init
+################## Create Jenkins Creds ##################
+create_jenkins_creds
 
 ################## Install Jenkins Plugins ##################
 sudo java -jar jenkins-cli.jar -auth admin:$passwd -s http://$ipaddr:8080 install-plugin amazon-ecr:1.6 \
@@ -266,10 +297,33 @@ sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 php -r "unlink('composer-setup.php');"
 
 # Create kringle-loyalty-api ecs service job
-sudo java -jar jenkins-cli.jar -auth kringle:kringle123 -s http://$ipaddr:8080 create-job kringle-loyalty-api-ecs < /tmp/kringle-loyalty-api-ecs.xml
+sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-job kringle-loyalty-api-ecs < /tmp/kringle-loyalty-api-ecs.xml
 
 # Create kringle-loyalty-api-lambda-cron service job
-sudo java -jar jenkins-cli.jar -auth kringle:kringle123 -s http://$ipaddr:8080 create-job kringle-loyalty-api-lambda-cron < /tmp/kringle-loyalty-api-lambda-cron.xml
+sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-job kringle-loyalty-api-lambda-cron < /tmp/kringle-loyalty-api-lambda-cron.xml
+
+# Getting values for creating jenkins credentials from AWS
+SSM_SECRETS=$(aws ssm get-parameters --names "BB_JENKINS_PSWD" \
+                                "BB_JENKINS_USER" \
+                                "JENKINS_ACCESS_KEY_ID" \
+                                "JENKINS_SECRET_ACCESS_KEY" \
+                                --with-decryption --query "Parameters[*]")
+
+BB_JENKINS_PSWD=$(echo $SSM_SECRETS | jq '.[] | select(.Name=="BB_JENKINS_PSWD")' | jq '.Value' -r)
+BB_JENKINS_USER=$(echo $SSM_SECRETS | jq '.[] | select(.Name=="BB_JENKINS_USER")' | jq '.Value' -r)
+JENKINS_ACCESS_KEY_ID=$(echo $SSM_SECRETS | jq '.[] | select(.Name=="JENKINS_ACCESS_KEY_ID")' | jq '.Value' -r)
+JENKINS_SECRET_ACCESS_KEY=$(echo $SSM_SECRETS | jq '.[] | select(.Name=="JENKINS_SECRET_ACCESS_KEY")' | jq '.Value' -r)
+
+sed -i "s/BB_JENKINS_PSWD/${BB_JENKINS_PSWD}/g" /tmp/kringle-jenkins-bitbucket.xml
+sed -i "s/BB_JENKINS_USER/${BB_JENKINS_USER}/g" /tmp/kringle-jenkins-bitbucket.xml
+sed -i "s/JENKINS_ACCESS_KEY_ID/${JENKINS_ACCESS_KEY_ID}/g" /tmp/awscreds-kringle-api.xml
+sed -i "s/JENKINS_SECRET_ACCESS_KEY/${JENKINS_SECRET_ACCESS_KEY}/g" /tmp/awscreds-kringle-api.xml
+
+# Create jenkins bitbucket access credentials
+sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-credentials-by-xml system::system::jenkins _ < /tmp/kringle-jenkins-bitbucket.xml
+
+# Create aws access credentails
+sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-credentials-by-xml system::system::jenkins _ < /tmp/awscreds-kringle-api.xml
 
 # Run inside project
 # composer require bref/bref

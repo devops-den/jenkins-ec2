@@ -32,12 +32,7 @@ resource "aws_iam_role_policy" "Jenkins-iam-role-policy" {
         {
             "Effect": "Allow",
             "Action":[
-                "s3:*",
-                "ec2:*",
-                "iam:*",
-                "rds:*",
-"elasticloadbalancing:*",
-"autoscaling:*"
+              ssm:GetParameters
             ],
             "Resource": "*"
         }
