@@ -15,14 +15,14 @@ resource "aws_subnet" "jenkins-public-subnet-1" {
   }
 }
 
-# resource "aws_subnet" "public-subnet-2" {
-#   cidr_block        = "${var.public_subnet_2_cidr}"
-#   vpc_id            = "${aws_vpc.development-vpc.id}"
-#   availability_zone = "${var.region}b"
-#   tags = {
-#     Name = "${var.environment}-Public-Subnet-2"
-#   }
-# }
+resource "aws_subnet" "jenkins-public-subnet-2" {
+  cidr_block        = var.public_subnet_2_cidr
+  vpc_id            = aws_vpc.jenkins-vpc.id
+  availability_zone = "${var.region}b"
+  tags = {
+    Name = "${var.environment}-Public-Subnet-2"
+  }
+}
 
 # resource "aws_subnet" "public-subnet-3" {
 #   cidr_block        = "${var.public_subnet_3_cidr}"
@@ -45,10 +45,10 @@ resource "aws_route_table_association" "jenkins-public-route-1-association" {
   subnet_id      = aws_subnet.jenkins-public-subnet-1.id
 }
 
-# resource "aws_route_table_association" "public-route-2-association" {
-#   route_table_id = "${aws_route_table.public-route-table.id}"
-#   subnet_id      = "${aws_subnet.public-subnet-2.id}"
-# }
+resource "aws_route_table_association" "jenkins-public-route-2-association" {
+  route_table_id = aws_route_table.jenkins-public-route-table.id
+  subnet_id      = aws_subnet.jenkins-public-subnet-2.id
+}
 # resource "aws_route_table_association" "public-route-3-association" {
 #   route_table_id = "${aws_route_table.public-route-table.id}"
 #   subnet_id      = "${aws_subnet.public-subnet-3.id}"

@@ -22,10 +22,10 @@ resource "aws_instance" "jenkins-instance" {
   instance_type = var.instance_type
   key_name      = var.keyname
   #vpc_id          = "${aws_vpc.development-vpc.id}"
-  vpc_security_group_ids = ["${aws_security_group.sg_allow_ssh_jenkins.id}"]
+  vpc_security_group_ids = [aws_security_group.sg_allow_ssh_jenkins.id]
   subnet_id              = aws_subnet.jenkins-public-subnet-1.id
-  user_data            = file("install_jenkins.sh")
-  iam_instance_profile = aws_iam_instance_profile.Jenkins-iam-role-instanceprofile.name
+  user_data              = file("install_jenkins.sh")
+  iam_instance_profile   = aws_iam_instance_profile.Jenkins-iam-role-instanceprofile.name
 
   associate_public_ip_address = true
   tags = {

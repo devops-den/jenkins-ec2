@@ -49,16 +49,16 @@ create_jenkins_multi_branch_pipeline() {
   </icon>
   <orphanedItemStrategy class="com.cloudbees.hudson.plugins.folder.computed.DefaultOrphanedItemStrategy" plugin="cloudbees-folder@6.15">
     <pruneDeadBranches>true</pruneDeadBranches>
-    <daysToKeep>30</daysToKeep>
-    <numToKeep>30</numToKeep>
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>-1</numToKeep>
   </orphanedItemStrategy>
   <triggers/>
   <disabled>false</disabled>
-  <sources class="jenkins.branch.MultiBranchProject$BranchSourceList" plugin="branch-api@2.6.3">
+  <sources class="jenkins.branch.MultiBranchProject\$BranchSourceList" plugin="branch-api@2.6.3">
     <data>
       <jenkins.branch.BranchSource>
         <source class="jenkins.plugins.git.GitSCMSource" plugin="git@4.7.1">
-          <id>80d4e405-d91c-42fe-bc6f-4590bb773549</id>
+          <id>fecfe0be-5d3b-4075-a8f8-40ccb5540054</id>
           <remote>REPO_URL</remote>
           <credentialsId>kringle-jenkins-bitbucket</credentialsId>
           <traits>
@@ -154,7 +154,6 @@ sudo service jenkins restart
 sleep 30
 
 ################## Install serverless for lambda cron deployment ##################
-
 # Instatll nvm
 cat > /tmp/subscript.sh << EOF
 #!/bin/bash
@@ -235,14 +234,14 @@ REPO_URL="https://sajjas-kringle@bitbucket.org/rohuma/kringle-loyalty-api.git"
 sed -i "s|INCLUDE_BRANCHES|$INCLUDE_BRANCHES|g" /tmp/kringle-loyalty-api.xml
 sed -i "s|REPO_URL|$REPO_URL|g" /tmp/kringle-loyalty-api.xml
 
-# Create kringle common multi branch pipeline
-sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-job kringle-loyalty-api-ecs < /tmp/kringle-loyalty-api.xml
-
 # Create jenkins bitbucket access credentials
 sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-credentials-by-xml system::system::jenkins _ < /tmp/kringle-jenkins-bitbucket.xml
 
 # Create aws access credentails
 sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-credentials-by-xml system::system::jenkins _ < /tmp/awscreds-kringle-api.xml
+
+# Create kringle loyalty api multi branch pipeline
+sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-job kringle-loyalty-api-ecs < /tmp/kringle-loyalty-api.xml
 
 # Run inside project
 # composer require bref/bref
