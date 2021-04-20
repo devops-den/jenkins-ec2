@@ -300,7 +300,7 @@ sed -i "s|JENKINS_ACCESS_KEY_ID|${JENKINS_ACCESS_KEY_ID}|g" /tmp/awscreds-kringl
 sed -i "s|JENKINS_SECRET_ACCESS_KEY|${JENKINS_SECRET_ACCESS_KEY}|g" /tmp/awscreds-kringle-api.xml
 
 INCLUDE_BRANCHES_KRINGLE_LOYALTY="feature/lambda kringle-loyalty-docker"
-INCLUDE_BRANCHES_CMS_PLATFORM="feature/lambda kringle-loyalty-docker"
+INCLUDE_BRANCHES_CMS_PLATFORM="docker-development"
 
 sed -i "s|INCLUDE_BRANCHES_KRINGLE_LOYALTY|$INCLUDE_BRANCHES_KRINGLE_LOYALTY|g" /tmp/kringle-loyalty-api-ecs.xml
 sed -i "s|INCLUDE_BRANCHES_CMS_PLATFORM|$INCLUDE_BRANCHES_CMS_PLATFORM|g" /tmp/cms-platform-api-ecs.xml

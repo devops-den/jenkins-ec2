@@ -40,11 +40,4 @@ resource "aws_autoscaling_group" "this" {
     value               = "Jenkins-Server"
     propagate_at_launch = true
   }
-
-  instance_refresh {
-    strategy = "Rolling"
-    preferences {
-      min_healthy_percentage = 50
-    }
-  }
 }
