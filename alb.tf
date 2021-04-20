@@ -15,13 +15,19 @@ resource "aws_lb_target_group" "this" {
   vpc_id   = aws_vpc.jenkins-vpc.id
   health_check {
     port = 8080
+    interval = 300
   }
 }
 
-resource "aws_lb_target_group_attachment" "this" {
-  target_group_arn = aws_lb_target_group.this.arn
-  target_id        = aws_instance.jenkins-instance.id
-  port             = 8080
+# resource "aws_lb_target_group_attachment" "this" {
+#   target_group_arn = aws_lb_target_group.this.arn
+#   target_id        = aws_instance.jenkins-instance.id
+#   port             = 8080
+# }
+
+resource "aws_autoscaling_attachment" "asg_attachment_bar" {
+  autoscaling_group_name = aws_autoscaling_group.this.id
+  alb_target_group_arn   = aws_lb_target_group.this.arn
 }
 
 # alb listener

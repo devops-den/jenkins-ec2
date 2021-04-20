@@ -1,11 +1,11 @@
 #!/bin/bash
 # Create Jenkins credentials function
 create_jenkins_creds() {
-    # kringle-jenkins-bitbucket credentials xml content
+    # kringle-devops-bitbucket credentials xml content
     cat > /tmp/kringle-devops-jenkins.xml << EOF
     <com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl plugin="credentials@2.3.17">
       <scope>GLOBAL</scope>
-      <id>kringle-jenkins-bitbucket</id>
+      <id>kringle-devops-bitbucket</id>
       <description>kringle-devops-jenkins</description>
       <username>BB_JENKINS_USER</username>
       <password>BB_JENKINS_PSWD</password>
