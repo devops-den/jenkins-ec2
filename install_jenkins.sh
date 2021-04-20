@@ -306,7 +306,7 @@ sed -i "s|INCLUDE_BRANCHES_KRINGLE_LOYALTY|$INCLUDE_BRANCHES_KRINGLE_LOYALTY|g" 
 sed -i "s|INCLUDE_BRANCHES_CMS_PLATFORM|$INCLUDE_BRANCHES_CMS_PLATFORM|g" /tmp/cms-platform-api-ecs.xml
 
 # Create jenkins bitbucket access credentials
-sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-credentials-by-xml system::system::jenkins _ < /tmp/kringle-jenkins-bitbucket.xml
+sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-credentials-by-xml system::system::jenkins _ < /tmp/kringle-devops-jenkins.xml
 
 # Create aws access credentails
 sudo java -jar jenkins-cli.jar -auth $custom_user:$custom_pass -s http://$ipaddr:8080 create-credentials-by-xml system::system::jenkins _ < /tmp/awscreds-kringle-api.xml
